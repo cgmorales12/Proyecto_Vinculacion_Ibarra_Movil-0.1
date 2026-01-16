@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Detalle del evento</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="evento" class="ion-padding">
+  <ion-slides [options]="slideOpts">
+    <ion-slide *ngFor="let imagen of evento.galeria">
+      <img [src]="imagen" [alt]="evento.titulo" />
+    </ion-slide>
+  </ion-slides>
+
+  <div class="event-header">
+    <h1>{{ evento.titulo }}</h1>
+    <div class="priority">
+      <ion-icon *ngFor="let _ of obtenerEstrellas(evento.prioridad)" name="star"></ion-icon>
+    </div>
+    <p class="type">{{ evento.tipo }} · {{ evento.categoria }}</p>
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Información del evento</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Fecha de inicio:</strong> {{ evento.fechaInicio | date: 'dd/MM/yyyy' }}</p>
+      <p><strong>Fecha de fin:</strong> {{ evento.fechaFin | date: 'dd/MM/yyyy' }}</p>
+      <p><strong>Descripción:</strong> {{ evento.descripcion }}</p>
+      <p><strong>Servicios:</strong> {{ evento.servicios.join(', ') }}</p>
+      <p *ngIf="evento.auspiciantes?.length"><strong>Auspiciantes:</strong> {{ evento.auspiciantes?.join(', ') }}</p>
+      <p *ngIf="evento.contactos?.length"><strong>Contactos:</strong> {{ evento.contactos?.join(', ') }}</p>
+      <ion-button fill="outline" (click)="abrirUbicacion()">
+        <ion-icon name="location-outline" slot="start"></ion-icon>
+        Ver ubicación
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="actions">
+    <ion-button (click)="toggleMeGusta()" [color]="meGusta ? 'danger' : 'medium'">
+      <ion-icon [name]="meGusta ? 'heart' : 'heart-outline'" slot="start"></ion-icon>
+      Me gusta
+    </ion-button>
+    <ion-button (click)="toggleAsistire()" [color]="asistire ? 'success' : 'medium'">
+      <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+      Asistiré al evento
+    </ion-button>
+  </div>
+</ion-content>
+
+<ion-content *ngIf="!evento" class="ion-padding">
+  <p>No se encontró el evento solicitado.</p>
+</ion-content>

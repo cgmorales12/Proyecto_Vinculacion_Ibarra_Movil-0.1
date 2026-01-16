@@ -221,26 +221,68 @@
       </ion-row>
     </ion-grid>
   </div>
-  <div *ngIf="mostrarEventos">
-    <!-- Próximos eventos -->
+  <div class="activities-section">
     <div class="section-header">
-      <h2>Eventos</h2>
+      <h2>Actividades y Eventos</h2>
       <ion-button fill="clear" size="small" (click)="seeAll('events')">
         Ver todos
         <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
       </ion-button>
     </div>
 
-    <div class="events-container">
-      <ion-card *ngFor="let event of upcomingEvents" class="event-card">
-        <img src="assets/icon/Eventoss.png" [alt]="event.title" />
+    <div class="month-filter">
+      <ion-label>Mes actual</ion-label>
+      <ion-select
+        [value]="mesSeleccionado"
+        interface="popover"
+        placeholder="Selecciona un mes"
+        (ionChange)="onMesEventosChange($event)"
+      >
+        <ion-select-option
+          *ngFor="let mes of mesesDisponibles"
+          [value]="mes.key"
+        >
+          {{ mes.label }}
+        </ion-select-option>
+      </ion-select>
+    </div>
+
+    <div class="category-block" *ngFor="let categoria of categoriasEventos">
+      <h3 class="category-title">{{ categoria }}</h3>
+      <div
+        class="empty-category"
+        *ngIf="obtenerEventosCategoria(categoria).length === 0"
+      >
+        No hay eventos registrados en este mes.
+      </div>
+      <ion-card
+        *ngFor="let evento of obtenerEventosCategoria(categoria)"
+        class="event-card"
+      >
+        <img [src]="evento.imagenPrincipal" [alt]="evento.titulo" />
         <ion-card-header>
-          <ion-card-title>{{event.title}}</ion-card-title>
+          <div class="priority">
+            <ion-icon
+              *ngFor="let _ of obtenerEstrellas(evento.prioridad)"
+              name="star"
+            ></ion-icon>
+          </div>
+          <ion-card-title>{{ evento.titulo }}</ion-card-title>
           <ion-card-subtitle>
             <ion-icon name="calendar-outline"></ion-icon>
-            {{event.date}}
+            {{ evento.fechaInicio | date: 'dd/MM/yyyy' }} -
+            {{ evento.fechaFin | date: 'dd/MM/yyyy' }}
           </ion-card-subtitle>
         </ion-card-header>
+        <ion-card-content>
+          <p class="event-summary">{{ evento.descripcionCorta }}</p>
+          <p class="event-more">
+            Más información del evento: {{ evento.descripcion }}
+          </p>
+          <ion-button expand="block" (click)="verDetalleEvento(evento)">
+            Detalles del evento
+          </ion-button>
+        </ion-card-content>
       </ion-card>
     </div>
   </div>

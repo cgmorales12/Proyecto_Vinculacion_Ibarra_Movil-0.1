@@ -29,6 +29,7 @@ import {
   buildOutline,
   ellipsisHorizontalOutline,
   helpOutline,
+  star,
 } from 'ionicons/icons';
 import { LoginPage } from '../login/login.page';
 import { Router } from '@angular/router';
@@ -36,6 +37,8 @@ import { NegociosService } from '../services/negocios.service';
 import { AuthService } from '../services/auth.service';
 import { Promocion, PromocionesService } from '../services/promociones.service';
 import { BusquedaService } from '../services/busqueda.service';
+import { EventosService } from '../eventos/eventos.service';
+import { Evento } from '../eventos/evento.model';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -72,7 +75,16 @@ export class HomePage implements OnInit {
   selectedCategoryId: number | undefined = undefined;
 
   //Sección de Eventos
-  mostrarEventos = false;
+  eventos: Evento[] = [];
+  eventosFiltrados: Evento[] = [];
+  mesesDisponibles: { key: string; label: string }[] = [];
+  mesSeleccionado = '';
+  categoriasEventos: Evento['categoria'][] = [
+    'Feria de emprendedores',
+    'Días festivos',
+    'Capacitaciones',
+    'Evento comunitario',
+  ];
 
   getTipoPromocionLabel(tipo: string): string {
     return this.tipoPromocionMap[tipo] || 'Promoción';
@@ -86,26 +98,6 @@ export class HomePage implements OnInit {
   hasMoreSearchResults: boolean = true;
   totalSearchElements: number = 0;
 
-  // Datos estáticos para eventos
-  upcomingEvents: any[] = [
-    {
-      id: 1,
-      title: 'Feria de Emprendedores',
-      date: '2023-12-15',
-      location: 'Plaza de Ponchos',
-      imageUrl: 'assets/icon/FeriaEmprendedores.jpg',
-      description: 'Evento anual para emprendedores locales',
-    },
-    {
-      id: 2,
-      title: 'Taller de Marketing Digital',
-      date: '2023-12-20',
-      location: 'Centro de Convenciones',
-      imageUrl: 'assets/icon/TallerMarketing.jpg',
-      description: 'Aprende a promocionar tu negocio en línea',
-    },
-  ];
-
   private loading: HTMLIonLoadingElement | null = null;
 
   constructor(
@@ -116,7 +108,8 @@ export class HomePage implements OnInit {
     private negociosService: NegociosService,
     private loadingCtrl: LoadingController,
     private authService: AuthService,
-    private busquedaService: BusquedaService
+    private busquedaService: BusquedaService,
+    private eventosService: EventosService
   ) {
     addIcons({
       locationOutline,
@@ -138,6 +131,7 @@ export class HomePage implements OnInit {
       buildOutline,
       ellipsisHorizontalOutline,
       helpOutline,
+      star,
     });
   }
 
@@ -146,6 +140,7 @@ export class HomePage implements OnInit {
     await this.loadCategories();
     this.setupAuthSubscription();
     this.loadPromotions();
+    this.cargarEventos();
   }
 
   onCategorySelect(event: any) {
@@ -282,12 +277,95 @@ export class HomePage implements OnInit {
     if (type === 'featured') {
       this.router.navigate(['/negocios']);
     } else if (type === 'events') {
-      this.router.navigate(['/eventos']);
+      this.router.navigate(['/eventos/home']);
     }
   }
 
   openBusinessById(businessId: number) {
     this.router.navigate(['/detalle-publico', businessId]);
+  }
+
+  cargarEventos() {
+    this.eventos = this.eventosService.listarEventos();
+    this.mesesDisponibles = this.generarMesesDisponibles();
+    this.mesSeleccionado = this.obtenerMesActual();
+    this.filtrarEventosPorMes(this.mesSeleccionado);
+  }
+
+  onMesEventosChange(event: any) {
+    this.filtrarEventosPorMes(event.detail.value);
+  }
+
+  obtenerEventosCategoria(categoria: Evento['categoria']): Evento[] {
+    return this.eventosFiltrados
+      .filter((evento) => evento.categoria === categoria)
+      .sort((a, b) => {
+        const pa = a.prioridad ?? 0;
+        const pb = b.prioridad ?? 0;
+        if (pa !== pb) {
+          return pb - pa;
+        }
+        return new Date(a.fechaInicio).getTime() - new Date(b.fechaInicio).getTime();
+      });
+  }
+
+  obtenerEstrellas(prioridad?: number): number[] {
+    const total = Math.min(3, Math.max(0, prioridad ?? 0));
+    return Array.from({ length: total }, (_, index) => index);
+  }
+
+  verDetalleEvento(evento: Evento) {
+    this.router.navigate(['/eventos/detalle', evento.id]);
+  }
+
+  private filtrarEventosPorMes(mes: string) {
+    this.mesSeleccionado = mes;
+    const [year, month] = mes.split('-').map((value) => parseInt(value, 10));
+    const inicioMes = new Date(year, month - 1, 1, 0, 0, 0, 0).getTime();
+    const finMes = new Date(year, month, 0, 23, 59, 59, 999).getTime();
+    this.eventosFiltrados = this.eventos.filter((evento) => {
+      const inicio = new Date(evento.fechaInicio).getTime();
+      const fin = new Date(evento.fechaFin).getTime();
+      return fin >= inicioMes && inicio <= finMes;
+    });
+  }
+
+  private generarMesesDisponibles(): { key: string; label: string }[] {
+    const mesesMap: Record<string, { key: string; label: string }> = {};
+    const nombres = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+    this.eventos.forEach((evento) => {
+      const inicio = new Date(evento.fechaInicio);
+      const fin = new Date(evento.fechaFin);
+      const cursor = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+      const limite = new Date(fin.getFullYear(), fin.getMonth(), 1);
+      while (cursor.getTime() <= limite.getTime()) {
+        const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+        mesesMap[key] = {
+          key,
+          label: `${nombres[cursor.getMonth()]} ${cursor.getFullYear()}`,
+        };
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+    });
+    return Object.values(mesesMap).sort((a, b) => a.key.localeCompare(b.key));
+  }
+
+  private obtenerMesActual(): string {
+    const ahora = new Date();
+    return `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
   }
 
   async showWelcomeAlert() {
