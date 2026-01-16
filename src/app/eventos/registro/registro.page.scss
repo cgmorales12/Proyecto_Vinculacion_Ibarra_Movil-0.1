@@ -1,0 +1,51 @@
+.date-grid,
+.coord-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.form-actions {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.filter-row {
+  margin: 20px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  ion-select {
+    flex: 1;
+  }
+}
+
+.listado h2 {
+  margin: 12px 0;
+}
+
+.listado ion-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.priority {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+
+  ion-icon {
+    color: #f6c343;
+  }
+}
+
+.crud-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}

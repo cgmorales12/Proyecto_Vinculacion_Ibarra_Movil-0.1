@@ -1,0 +1,159 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Registro Actividades y Eventos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        {{ eventoEditando ? 'Editar evento' : 'Nuevo evento' }}
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">Nombre del evento</ion-label>
+        <ion-input [(ngModel)]="form.titulo" placeholder="Nombre del evento"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Descripción corta</ion-label>
+        <ion-textarea [(ngModel)]="form.descripcionCorta"></ion-textarea>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Descripción completa</ion-label>
+        <ion-textarea [(ngModel)]="form.descripcion"></ion-textarea>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Foto principal (URL)</ion-label>
+        <ion-input [(ngModel)]="form.imagenPrincipal"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Fotos secundarias (URL 1)</ion-label>
+        <ion-input [(ngModel)]="form.galeria1"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Fotos secundarias (URL 2)</ion-label>
+        <ion-input [(ngModel)]="form.galeria2"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Fotos secundarias (URL 3)</ion-label>
+        <ion-input [(ngModel)]="form.galeria3"></ion-input>
+      </ion-item>
+      <div class="date-grid">
+        <ion-item>
+          <ion-label position="stacked">Fecha de inicio</ion-label>
+          <ion-input type="date" [(ngModel)]="form.fechaInicio"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Fecha de fin</ion-label>
+          <ion-input type="date" [(ngModel)]="form.fechaFin"></ion-input>
+        </ion-item>
+      </div>
+      <ion-item>
+        <ion-label position="stacked">Tipo del evento</ion-label>
+        <ion-input [(ngModel)]="form.tipo"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Categoría</ion-label>
+        <ion-select [(ngModel)]="form.categoria" interface="popover">
+          <ion-select-option *ngFor="let categoria of categoriasEventos" [value]="categoria">
+            {{ categoria }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Prioridad</ion-label>
+        <ion-select [(ngModel)]="form.prioridad" interface="popover">
+          <ion-select-option [value]="3">Alta (3 estrellas)</ion-select-option>
+          <ion-select-option [value]="2">Media (2 estrellas)</ion-select-option>
+          <ion-select-option [value]="1">Baja (1 estrella)</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Servicios (separados por coma)</ion-label>
+        <ion-input [(ngModel)]="form.servicios"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Auspiciantes (separados por coma)</ion-label>
+        <ion-input [(ngModel)]="form.auspiciantes"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Contactos (separados por coma)</ion-label>
+        <ion-input [(ngModel)]="form.contactos"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Dirección</ion-label>
+        <ion-input [(ngModel)]="form.direccion"></ion-input>
+      </ion-item>
+      <div class="coord-grid">
+        <ion-item>
+          <ion-label position="stacked">Latitud</ion-label>
+          <ion-input type="number" [(ngModel)]="form.lat"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label position="stacked">Longitud</ion-label>
+          <ion-input type="number" [(ngModel)]="form.lng"></ion-input>
+        </ion-item>
+      </div>
+      <ion-item>
+        <ion-label position="stacked">Enlace de ubicación</ion-label>
+        <ion-input [(ngModel)]="form.ubicacionUrl"></ion-input>
+      </ion-item>
+
+      <div class="form-actions">
+        <ion-button expand="block" (click)="guardarEvento()">
+          {{ eventoEditando ? 'Actualizar evento' : 'Registrar evento' }}
+        </ion-button>
+        <ion-button expand="block" fill="outline" *ngIf="eventoEditando" (click)="cancelarEdicion()">
+          Cancelar edición
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="filter-row">
+    <ion-label>Filtrar por mes</ion-label>
+    <ion-select
+      [value]="mesSeleccionado"
+      interface="popover"
+      placeholder="Selecciona un mes"
+      (ionChange)="onMesEventosChange($event)"
+    >
+      <ion-select-option *ngFor="let mes of mesesDisponibles" [value]="mes.key">
+        {{ mes.label }}
+      </ion-select-option>
+    </ion-select>
+  </div>
+
+  <div class="listado">
+    <h2>Eventos registrados</h2>
+    <ion-card *ngFor="let evento of eventosFiltrados">
+      <img [src]="evento.imagenPrincipal" [alt]="evento.titulo" />
+      <ion-card-header>
+        <ion-card-title>{{ evento.titulo }}</ion-card-title>
+        <ion-card-subtitle>
+          {{ evento.fechaInicio | date: 'dd/MM/yyyy' }} - {{ evento.fechaFin | date: 'dd/MM/yyyy' }}
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="priority">
+          <ion-icon *ngFor="let _ of obtenerEstrellas(evento.prioridad)" name="star"></ion-icon>
+        </div>
+        <p><strong>Categoría:</strong> {{ evento.categoria }}</p>
+        <p><strong>Tipo:</strong> {{ evento.tipo }}</p>
+        <p><strong>Descripción corta:</strong> {{ evento.descripcionCorta }}</p>
+        <div class="crud-actions">
+          <ion-button size="small" fill="outline" (click)="seleccionarEvento(evento)">
+            <ion-icon name="create-outline" slot="start"></ion-icon>
+            Editar
+          </ion-button>
+          <ion-button size="small" color="danger" (click)="eliminarEvento(evento)">
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            Eliminar
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

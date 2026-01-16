@@ -40,6 +40,7 @@ export class SideMenuComponent {
     { title: 'Inicio', icon: 'home', path: '/home' },
     { title: 'Perfil', icon: 'person', path: '/perfil' },
     { title: 'Mis Documentos', icon: 'document-text', path: '/mis-documentos' },
+    { title: 'Registro Actividades y Eventos', icon: 'calendar', path: '/eventos/registro' },
     { title: 'Configuración', icon: 'settings', path: '/settings' },
   ];
 
